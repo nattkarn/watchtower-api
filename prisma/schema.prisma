@@ -31,10 +31,10 @@ model Url {
   id              Int      @id @default(autoincrement())
   url             String   @unique
   label           String
-  sslExpireDate   DateTime?
+  sslExpireDate   DateTime
   status          String   @default("inactive") // active, inactive, maintenance
   lastCheckedAt   DateTime?
-  lastStatusCode  Int? // 200, 404, 500, 502, 503, 504
+  lastStatusCode  Int?
   ownerId         Int
   owner           User     @relation(fields: [ownerId], references: [id])
   createdAt       DateTime @default(now())
