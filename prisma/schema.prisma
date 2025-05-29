@@ -35,7 +35,7 @@ model Url {
   isSslExpireSoon Boolean?
   status          String   @default("inactive") // active, inactive, maintenance
   lastCheckedAt   DateTime?
-  lastStatusCode  Int?
+  lastStatusCode  Int? // 200, 404, 500, 502, 503, 504
   ownerId         Int
   owner           User     @relation(fields: [ownerId], references: [id])
   createdAt       DateTime @default(now())

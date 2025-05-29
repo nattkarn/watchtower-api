@@ -26,6 +26,9 @@ export class UserService {
       const user = await this.prisma.user.findUnique({
         where: {
           username: data.username,
+
+          // TODO: Implement status check after register with mail
+          // status: 'active'
         },
       });
 
