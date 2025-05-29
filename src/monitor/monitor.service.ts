@@ -31,17 +31,25 @@ export class MonitorService {
             url,
           },
         });
+
+        if (!findId || !findId.id) {
+          throw new Error('URL not found in database');
+        }
       } catch (error) {
         console.error('❌ Error finding URL:', error);
       }
 
       try {
+        const isExpiringSoon = sslDate
+          ? new Date(sslDate).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000
+          : false;
         const updateUrl = await this.prisma.url.update({
           where: {
             id: Number(findId.id),
           },
           data: {
             sslExpireDate: sslDate,
+            isSslExpireSoon: isExpiringSoon,
             status:
               res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
             lastCheckedAt: new Date(),
@@ -53,12 +61,20 @@ export class MonitorService {
 
       // Convert Date to Readable Format
       const sslDateString = sslDate?.toISOString();
-
+      const getData = await this.prisma.url.findUnique({
+        where: {
+          id: Number(findId.id),
+        },
+      });
+      if (!getData) {
+        throw new Error('URL not found in database');
+      }
       return {
         url,
         statusCode: res.status,
         status: res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
         sslExpireDate: sslDateString,
+        isSslExpireSoon: getData?.isSslExpireSoon,
         lastCheck: new Date(),
       };
     } catch (error) {
