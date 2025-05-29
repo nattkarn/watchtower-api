@@ -32,6 +32,7 @@ model Url {
   url             String   @unique
   label           String
   sslExpireDate   DateTime?
+  isSslExpireSoon Boolean?
   status          String   @default("inactive") // active, inactive, maintenance
   lastCheckedAt   DateTime?
   lastStatusCode  Int? // 200, 404, 500, 502, 503, 504
