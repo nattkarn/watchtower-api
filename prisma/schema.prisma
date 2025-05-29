@@ -31,7 +31,8 @@ model Url {
   id              Int      @id @default(autoincrement())
   url             String   @unique
   label           String
-  sslExpireDate   DateTime
+  sslExpireDate   DateTime?
+  isSslExpireSoon Boolean?
   status          String   @default("inactive") // active, inactive, maintenance
   lastCheckedAt   DateTime?
   lastStatusCode  Int?
