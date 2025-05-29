@@ -6,7 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import axios from 'axios';
 import { CreateUrlDto } from './dto/create-url.dto';
-import { getSSLCertificateExpiry } from 'src/auth/utils/getSSLCertificateExpiry';
+import { getSSLCertificateExpiry } from 'src/utils/getSSLCertificateExpiry';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { UpdateUrlDto } from './dto/update-url.dto';
 
@@ -31,9 +31,20 @@ export class MonitorService {
             url,
           },
         });
+
+        if (!findId || !findId.id) {
+          throw new Error('URL not found in database');
+        }
+
+        
       } catch (error) {
         console.error('❌ Error finding URL:', error);
       }
+
+
+      const isExpiringSoon = sslDate
+        ? new Date(sslDate).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000
+        : false;
 
       try {
         const updateUrl = await this.prisma.url.update({
@@ -42,6 +53,8 @@ export class MonitorService {
           },
           data: {
             sslExpireDate: sslDate,
+            isSslExpireSoon: isExpiringSoon,
+            lastStatusCode: res.status,
             status:
               res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
             lastCheckedAt: new Date(),
@@ -54,11 +67,19 @@ export class MonitorService {
       // Convert Date to Readable Format
       const sslDateString = sslDate?.toISOString();
 
+      const getData = await this.prisma.url.findUnique({
+        where: {
+          id: Number(findId.id),
+        },
+      });
+
       return {
         url,
         statusCode: res.status,
         status: res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
-        sslExpireDate: sslDateString,
+        isSslExpireSoon: getData?.isSslExpireSoon,
+        sslExpireDate: getData?.sslExpireDate,
+        lastStatusCode: getData?.lastStatusCode,
         lastCheck: new Date(),
       };
     } catch (error) {
