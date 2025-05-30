@@ -23,6 +23,7 @@ export class AuthService {
           return {
             id: isUserExist.data.id,
             username: isUserExist.data.username,
+            level: isUserExist.data.level,
     
           };
         }
@@ -30,13 +31,29 @@ export class AuthService {
       }
     
       async login(user: any) {
-        const payload = { username: user.username, id: user.id };
+        const payload = { username: user.username, id: user.id, level: user.level };
 
+
+        const checkStatus = await this.userService.findByUsername({
+          username: user.username,
+        });
+
+        if (checkStatus.data.status !== 'active') {
+          return {
+            message: 'User not active',
+            httpStatus: 401,
+          };
+        }
         
-        // console.log("payload", payload);
+        console.log("payload", payload);
         return {
           username: user.username,
+          level: user.level,
           token: this.jwtService.sign(payload),
         };
       }
+
+      
+
+      
 }

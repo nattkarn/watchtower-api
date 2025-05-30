@@ -43,6 +43,7 @@ export class MonitorController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async getAllUrl(@Request() req: any) {
+    console.log('user',req.user)
     return this.monitorService.getAllUrl();
   }
 

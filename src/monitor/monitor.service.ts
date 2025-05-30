@@ -167,13 +167,15 @@ export class MonitorService {
   }
 
   async updateUrl(dto: UpdateUrlDto, id: number) {
+
+    const sslDate = dto.sslExpireDate ? new Date(dto.sslExpireDate).toISOString() : undefined;
     const url = await this.prisma.url.update({
       where: {
         id: Number(id),
       },
       data: {
         label: dto.label,
-        sslExpireDate: dto.sslExpireDate ?? undefined,
+        sslExpireDate: sslDate,
         status: dto.status,
       },
     });
