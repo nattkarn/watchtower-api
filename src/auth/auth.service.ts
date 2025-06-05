@@ -53,6 +53,18 @@ export class AuthService {
         };
       }
 
+      async verifyToken(token: string) {
+        try {
+          const verifyToken = await this.jwtService.verify(token);
+          if (verifyToken) {
+            return true;
+          }else{
+            return false;
+          }
+        } catch (error) {
+          return false;
+        }
+      }
       
 
       

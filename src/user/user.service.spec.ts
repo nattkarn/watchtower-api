@@ -15,4 +15,13 @@ describe('UserService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  it('should find user by username', () => {
+    expect(service.findByUsername({ username: 'test' })).resolves.toEqual({
+      id: 1,
+      username: 'test',
+      tel: '123456789',
+      line: 'test',
+    });
+  });
 });

@@ -70,4 +70,11 @@ export class AuthController {
 
     return { success: true };
   }
+
+  @Post('/verify-token')
+  @HttpCode(200)
+  async verifyToken(@Request() req: any) {
+    const verifyToken = await this.authService.verifyToken(req.body.token);
+    return verifyToken;
+  }
 }
