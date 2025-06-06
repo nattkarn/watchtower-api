@@ -25,6 +25,7 @@ model User {
   updatedAt DateTime @updatedAt
   status    String   @default("inactive") // active, inactive
   urls      Url[]
+  schedulerConfig SchedulerConfig[]
 }
 
 model Url {
@@ -42,4 +43,13 @@ model Url {
   updatedAt       DateTime @updatedAt
 
   @@index([ownerId])
+}
+
+model SchedulerConfig {
+  id          Int      @id @default(1)
+  jobName     String   @unique @default("url-health-check")       // เช่น 'url-health-check'
+  cronExpr    String   @default("*/15 * * * *") // ตัวอย่าง "*/15 * * * *"
+  updatedById Int                   
+  updatedBy   User     @relation(fields: [updatedById], references: [id])
+  updatedAt   DateTime @updatedAt
 }
