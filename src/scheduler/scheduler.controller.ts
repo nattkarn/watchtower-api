@@ -5,41 +5,23 @@ import {
   Get,
   UseGuards,
   HttpCode,
+  Post,
 } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
-import { Post, Patch } from '@nestjs/common';
-import { CreateSchedulerConfigDto } from './dto/create-scheduler-config.dto';
-import { UpdateSchedulerConfigDto } from './dto/update-scheduler-config.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+
 
 @Controller('scheduler')
 export class SchedulerController {
   constructor(private readonly schedulerService: SchedulerService) {}
 
-  @Post('config')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(201)
-  async createConfig(
-    @Body() body: CreateSchedulerConfigDto,
-    @Request() req: any,
-  ) {
-    return this.schedulerService.createSchedulerConfig(body, req.user.userid);
-  }
 
-  @Get('config')
-  @UseGuards(AuthGuard('jwt'))
+  @Post('manual-check')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  async getConfig() {
-    return this.schedulerService.getSchedulerConfig();
-  }
+  async manualCheck() {
+    await this.schedulerService.handleCron(); // reuse cron logic
+    return { message: 'Manual health check triggered.' };
 
-  @Patch('config')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(200)
-  async updateConfig(
-    @Body() body: UpdateSchedulerConfigDto,
-    @Request() req: any,
-  ) {
-    return this.schedulerService.updateSchedulerConfig(body, req.user.userid);
   }
 }
