@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { AlertService } from 'src/alert/alert.service';
 
+
 @Injectable()
 export class SchedulerService {
   private readonly logger = new Logger(SchedulerService.name);
@@ -12,10 +13,12 @@ export class SchedulerService {
     private readonly prisma: PrismaService,
     private readonly monitorService: MonitorService,
     private readonly alertService: AlertService,
+
   ) {}
 
   // Cron Job: run every 15 minutes
   @Cron('*/15 * * * *')
+
 async handleCron() {
   this.logger.log('🚀 Running URL health check job (every 15 min)');
 
@@ -50,7 +53,5 @@ async handleCron() {
     this.logger.error('❌ Error running URL health check job:', error);
   }
 }
-
-
 
 }

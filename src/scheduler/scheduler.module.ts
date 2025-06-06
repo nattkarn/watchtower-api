@@ -11,5 +11,6 @@ import { MonitorService } from 'src/monitor/monitor.service';
   imports: [PrismaModule, ScheduleModule.forRoot(), MonitorModule, AlertModule],
   controllers: [SchedulerController],
   providers: [SchedulerService, MonitorService],
+
 })
 export class SchedulerModule {}

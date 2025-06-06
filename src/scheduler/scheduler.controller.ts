@@ -10,9 +10,11 @@ import {
 import { SchedulerService } from './scheduler.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
+
 @Controller('scheduler')
 export class SchedulerController {
   constructor(private readonly schedulerService: SchedulerService) {}
+
 
   @Post('manual-check')
   @UseGuards(JwtAuthGuard)
@@ -20,5 +22,6 @@ export class SchedulerController {
   async manualCheck() {
     await this.schedulerService.handleCron(); // reuse cron logic
     return { message: 'Manual health check triggered.' };
+
   }
 }

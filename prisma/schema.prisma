@@ -25,6 +25,7 @@ model User {
   updatedAt DateTime @updatedAt
   status    String   @default("inactive") // active, inactive
   urls      Url[]
+  schedulerConfig SchedulerConfig[]
 }
 
 model Url {
@@ -54,3 +55,4 @@ model AlertLog {
   message    String
   createdAt  DateTime @default(now())
 }
+
