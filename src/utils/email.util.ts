@@ -8,7 +8,7 @@ export class EmailService {
   private transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_SSL,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
@@ -16,17 +16,27 @@ export class EmailService {
   });
 
   async sendEmailNotify(subject: string, message: string, recipients: string[]) {
+    console.log('send email');
     try {
-      await this.transporter.sendMail({
+      console.log(`sending email to: ${recipients.join(', ')}, subject: ${subject}`);
+      const result = await this.transporter.sendMail({
         from: `"Watchtower Alerts" <${process.env.EMAIL_USER}>`,
         to: recipients, // array of recipients
         subject: subject,
         text: message,
       });
-
-      this.logger.log(`📧 Email sent to: ${recipients.join(', ')}`);
+  
+      this.logger.log(`📧 Email sent to: ${recipients.join(', ')}, messageId: ${result.messageId}`);
     } catch (error) {
       this.logger.error('❌ Error sending email:', error);
     }
+  }
+
+  async testEmail() {
+    await this.sendEmailNotify(
+      'Test Email',
+      'This is a test email from Watchtower.',
+      ['nattkarn.p@hotmail.com'],
+    );
   }
 }

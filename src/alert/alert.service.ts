@@ -14,9 +14,15 @@ export class AlertService {
   async processAlertForUrl(
     urlId: number,
     newStatus: string,
+    previousStatus: string,
     isSslExpireSoon: boolean,
     sslExpireDate?: string,
   ) {
+    // console.log('processAlertForUrl urlId', urlId)
+    // console.log('processAlertForUrl newStatus', newStatus)
+    // console.log('processAlertForUrl isSslExpireSoon', isSslExpireSoon)
+    // console.log('processAlertForUrl sslExpireDate', sslExpireDate)
+    
     const url = await this.prisma.url.findUnique({
       where: { id: urlId },
       include: { owner: true },
@@ -35,10 +41,15 @@ export class AlertService {
       },
       select: { email: true },
     });
+
+    console.log('adminEmails', adminEmails)
     const emailList = adminEmails.map((user) => user.email);
 
     // 1️⃣ Check for status change (insert log every time if status changed)
-    if (url.status !== newStatus) {
+    // console.log('url.status', url.status)
+    // console.log('newStatus', newStatus)
+    if (previousStatus !== newStatus) {
+      console.log('call alert')
       const subject = `[ALERT] URL Status Changed: ${url.url}`;
       const message = `URL: ${url.url}\nStatus changed from ${url.status?.toUpperCase()} → ${newStatus?.toUpperCase()}\nLast checked: ${new Date().toISOString()}`;
 
@@ -91,4 +102,10 @@ export class AlertService {
       this.logger.log(`✅ Cleared old SSL-expire log for URL: ${url.url}`);
     }
   }
+
+  async testEmail() {
+    await this.emailService.testEmail();
+    return { message: 'Test email sent.' };
+  }
+
 }

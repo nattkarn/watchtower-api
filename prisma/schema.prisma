@@ -25,7 +25,6 @@ model User {
   updatedAt DateTime @updatedAt
   status    String   @default("inactive") // active, inactive
   urls      Url[]
-  schedulerConfig SchedulerConfig[]
 }
 
 model Url {
