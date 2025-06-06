@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MonitorService } from 'src/monitor/monitor.service';
 import { Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { AlertService } from 'src/alert/alert.service';
 
 
@@ -17,7 +17,7 @@ export class SchedulerService {
   ) {}
 
   // Cron Job: run every 15 minutes
-  @Cron('*/15 * * * *')
+  @Cron('*/1 * * * *')
 
 async handleCron() {
   this.logger.log('🚀 Running URL health check job (every 15 min)');
@@ -39,9 +39,10 @@ async handleCron() {
 
         await this.alertService.processAlertForUrl(
           url.id,
+          checkResult.previousStatus,    // ⭐ ใส่ previousStatus
           checkResult.status,
           checkResult.isSslExpireSoon || false,
-          checkResult.sslExpireDate,
+          checkResult.sslExpireDate ?? undefined,
         );
       } catch (err) {
         this.logger.error(`❌ Error checking URL ${url.url}:`, err);

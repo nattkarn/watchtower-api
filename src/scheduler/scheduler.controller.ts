@@ -24,4 +24,5 @@ export class SchedulerController {
     return { message: 'Manual health check triggered.' };
 
   }
+  
 }

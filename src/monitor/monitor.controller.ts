@@ -28,7 +28,6 @@ export class MonitorController {
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   async createUrl(@Body() body: CreateUrlDto, @Request() req: any) {
-    console.log('user',req.user)
     return this.monitorService.createUrl(body, req.user.userid);
   }
 

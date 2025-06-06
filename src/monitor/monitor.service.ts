@@ -15,79 +15,79 @@ export class MonitorService {
   constructor(private readonly prisma: PrismaService) {}
 
   async checkUrl(url: string) {
+    let findId;
+    let sslDate: Date | null = null;
+    let statusCode: number | string | null = null;
+    let status: 'active' | 'inactive' = 'inactive';
+    let isSslExpireSoon = false;
+  
     try {
-      const res = await axios.get(url, { timeout: 5000 });
-
-      const sslDate = await getSSLCertificateExpiry(url);
-
-      if (!sslDate) {
-        console.warn('⚠️ ไม่สามารถดึงวันหมดอายุ SSL ได้');
+      // 1️⃣ หา URL ใน DB
+      findId = await this.prisma.url.findUnique({
+        where: { url },
+      });
+  
+      if (!findId || !findId.id) {
+        throw new Error(`URL not found in database: ${url}`);
       }
-
-      let findId;
+  
+      // 2️⃣ ลองยิง HTTP GET
+      const res = await axios.get(url, { timeout: 5000 });
+      statusCode = res.status;
+      status = res.status >= 200 && res.status < 400 ? 'active' : 'inactive';
+  
+      // 3️⃣ ลองดึง SSL date
+      sslDate = await getSSLCertificateExpiry(url);
+  
+      if (sslDate) {
+        isSslExpireSoon =
+          new Date(sslDate).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000;
+      } else {
+        // console.warn(`⚠️ Cannot get SSL expiry for URL: ${url}`);
+      }
+    } catch (error) {
+      // console.error(`❌ Error checking URL ${url}:`, error);
+  
+      // ถ้า error จาก HTTP หรือ SSL → force inactive
+      status = 'inactive';
+      statusCode = error.response?.status || error.code || 'unknown_error';
+      sslDate = null;
+      isSslExpireSoon = false;
+    }
+  
+    // 4️⃣ พยายาม update DB เสมอถ้ามี findId
+    if (findId?.id) {
       try {
-        findId = await this.prisma.url.findUnique({
-          where: {
-            url,
+        await this.prisma.url.update({
+          where: { id: Number(findId.id) },
+          data: {
+            sslExpireDate: sslDate,
+            isSslExpireSoon: isSslExpireSoon,
+            status: status,
+            lastStatusCode: typeof statusCode === 'number' ? statusCode : null,
+            lastCheckedAt: new Date(),
           },
         });
-
-        if (!findId || !findId.id) {
-          throw new Error('URL not found in database');
-        }
-      } catch (error) {
-        console.error('❌ Error finding URL:', error);
+      } catch (updateError) {
+        console.error(`❌ Error updating DB for URL ${url}:`);
       }
-
-      try {
-        const isExpiringSoon = sslDate
-          ? new Date(sslDate).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000
-          : false;
-          const updateUrl = await this.prisma.url.update({
-            where: {
-              id: Number(findId.id),
-            },
-            data: {
-              sslExpireDate: sslDate,
-              isSslExpireSoon: isExpiringSoon,
-              status: res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
-              lastStatusCode: res.status,
-              lastCheckedAt: new Date(),
-            },
-          });
-      } catch (error) {
-        console.error('❌ Error updating URL:', error);
-      }
-
-      // Convert Date to Readable Format
-      const sslDateString = sslDate?.toISOString();
-      const getData = await this.prisma.url.findUnique({
-        where: {
-          id: Number(findId.id),
-        },
-      });
-      if (!getData) {
-        throw new Error('URL not found in database');
-      }
-      return {
-        url,
-        statusCode: res.status,
-        status: res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
-        sslExpireDate: sslDateString,
-        isSslExpireSoon: getData?.isSslExpireSoon,
-        lastCheck: new Date(),
-      };
-    } catch (error) {
-      return {
-        statusCode: error.response?.status || error.code,
-        status: 'inactive',
-        lastCheck: new Date(),
-      };
     }
+  
+    // 5️⃣ return object ที่ field ครบเสมอ
+    return {
+      url,
+      statusCode,
+      status,
+      previousStatus: findId?.status || 'unknown',  // ⭐ ใส่ previousStatus
+      sslExpireDate: sslDate ? sslDate.toISOString() : null,
+      isSslExpireSoon,
+      lastCheck: new Date(),
+    };
   }
+  
 
   async testUrl() {
-    const url = 'https://meet.wee-ed.org/';
+    const url = 'https://httpstat.us/400';
     const checkUrl = await this.checkUrl(url);
 
     const sslDate = await getSSLCertificateExpiry(url);
@@ -103,8 +103,11 @@ export class MonitorService {
   }
 
   async createUrl(dto: CreateUrlDto, ownerId: number) {
+    // console.log('dto',dto)
+    // console.log('ownerId',ownerId)
+
     let sslDate: Date | null | undefined = null;
-  
+    
     try {
       // Step 1: Create URL in DB
       const created = await this.prisma.url.create({
