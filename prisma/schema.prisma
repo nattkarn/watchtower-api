@@ -32,7 +32,7 @@ model Url {
   url             String   @unique
   label           String
   sslExpireDate   DateTime?
-  isSslExpireSoon Boolean?
+  isSslExpireSoon Boolean  @default(false)
   status          String   @default("inactive") // active, inactive, maintenance
   lastCheckedAt   DateTime?
   lastStatusCode  Int? // 200, 404, 500, 502, 503, 504
@@ -44,8 +44,6 @@ model Url {
   alertLogs AlertLog[]
 
   @@index([ownerId])
-<<<<<<< Updated upstream
-=======
 }
 
 model AlertLog {
@@ -55,5 +53,4 @@ model AlertLog {
   type       String   // 'status-change' | 'ssl-expire'
   message    String
   createdAt  DateTime @default(now())
->>>>>>> Stashed changes
 }

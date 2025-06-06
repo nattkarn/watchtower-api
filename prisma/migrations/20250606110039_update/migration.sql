@@ -1,14 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `SchedulerConfig` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "SchedulerConfig" DROP CONSTRAINT "SchedulerConfig_updatedById_fkey";
-
--- DropTable
-DROP TABLE "SchedulerConfig";
+-- AlterTable
+ALTER TABLE "Url" ADD COLUMN     "isSslExpireSoon" BOOLEAN NOT NULL DEFAULT false;
 
 -- CreateTable
 CREATE TABLE "AlertLog" (

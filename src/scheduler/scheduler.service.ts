@@ -37,7 +37,7 @@ async handleCron() {
         await this.alertService.processAlertForUrl(
           url.id,
           checkResult.status,
-          checkResult.isSslExpireSoon ?? false,
+          checkResult.isSslExpireSoon,
           checkResult.sslExpireDate,
         );
       } catch (err) {
