@@ -10,6 +10,8 @@ import { MonitorModule } from './monitor/monitor.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { AlertModule } from './alert/alert.module';
 import { ReportModule } from './report/report.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -21,9 +23,20 @@ import { ReportModule } from './report/report.module';
         envFilePath: '.env',
       }
     ),
-
+    ThrottlerModule.forRoot({
+      // if skipThrottle use @SkipThrottle() in controller
+      throttlers: [
+        {
+          ttl: 60000, // 60 seconds
+          limit: 10, // 10 requests per minute
+        },
+      ],
+    }),
     PrismaModule, UserModule, AuthModule, MonitorModule, SchedulerModule, AlertModule, ReportModule],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard
+}],
 })
 export class AppModule {}

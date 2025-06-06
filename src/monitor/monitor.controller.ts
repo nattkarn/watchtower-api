@@ -46,6 +46,13 @@ export class MonitorController {
     return this.monitorService.getAllUrl();
   }
 
+  @Get('homepage-url')
+  @HttpCode(200)
+  // @UseGuards(JwtAuthGuard)
+  async getHomepageUrl() {
+    return this.monitorService.getHomepageUrl();
+  }
+
   @Post('get-url')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)

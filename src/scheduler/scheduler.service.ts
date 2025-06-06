@@ -17,7 +17,7 @@ export class SchedulerService {
   ) {}
 
   // Cron Job: run every 15 minutes
-  @Cron('*/1 * * * *')
+  @Cron('*/15 * * * *')
 
 async handleCron() {
   this.logger.log('🚀 Running URL health check job (every 15 min)');
