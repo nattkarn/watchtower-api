@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MonitorModule } from './monitor/monitor.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { AlertModule } from './alert/alert.module';
+import { ReportModule } from './report/report.module';
 @Module({
   imports: [
     
@@ -20,7 +21,7 @@ import { AlertModule } from './alert/alert.module';
       }
     ),
     
-    PrismaModule, UserModule, AuthModule, MonitorModule, SchedulerModule, AlertModule],
+    PrismaModule, UserModule, AuthModule, MonitorModule, SchedulerModule, AlertModule, ReportModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })

@@ -7,5 +7,6 @@ import { PrismaModule } from 'src/prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [MonitorController],
   providers: [MonitorService],
+  exports: [MonitorService],
 })
 export class MonitorModule {}

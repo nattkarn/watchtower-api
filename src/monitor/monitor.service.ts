@@ -31,34 +31,50 @@ export class MonitorService {
             url,
           },
         });
+
+        if (!findId || !findId.id) {
+          throw new Error('URL not found in database');
+        }
       } catch (error) {
         console.error('❌ Error finding URL:', error);
       }
 
       try {
-        const updateUrl = await this.prisma.url.update({
-          where: {
-            id: Number(findId.id),
-          },
-          data: {
-            sslExpireDate: sslDate,
-            status:
-              res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
-            lastCheckedAt: new Date(),
-          },
-        });
+        const isExpiringSoon = sslDate
+          ? new Date(sslDate).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000
+          : false;
+          const updateUrl = await this.prisma.url.update({
+            where: {
+              id: Number(findId.id),
+            },
+            data: {
+              sslExpireDate: sslDate,
+              isSslExpireSoon: isExpiringSoon,
+              status: res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
+              lastStatusCode: res.status,
+              lastCheckedAt: new Date(),
+            },
+          });
       } catch (error) {
         console.error('❌ Error updating URL:', error);
       }
 
       // Convert Date to Readable Format
       const sslDateString = sslDate?.toISOString();
-
+      const getData = await this.prisma.url.findUnique({
+        where: {
+          id: Number(findId.id),
+        },
+      });
+      if (!getData) {
+        throw new Error('URL not found in database');
+      }
       return {
         url,
         statusCode: res.status,
         status: res.status >= 200 && res.status < 400 ? 'active' : 'inactive',
         sslExpireDate: sslDateString,
+        isSslExpireSoon: getData?.isSslExpireSoon,
         lastCheck: new Date(),
       };
     } catch (error) {
@@ -88,30 +104,31 @@ export class MonitorService {
 
   async createUrl(dto: CreateUrlDto, ownerId: number) {
     let sslDate: Date | null | undefined = null;
-
-    console.log('ownerId', ownerId);
-    if (dto.sslExpireDate) {
-      sslDate = new Date(dto.sslExpireDate);
-    } else {
-      const resolved = await getSSLCertificateExpiry(dto.url);
-      if (!resolved) {
-        console.warn('⚠️ ไม่สามารถดึงวันหมดอายุ SSL ได้');
-      }
-      sslDate = resolved ?? null;
-    }
-
+  
     try {
-      const url = await this.prisma.url.create({
+      // Step 1: Create URL in DB
+      const created = await this.prisma.url.create({
         data: {
           url: dto.url,
           label: dto.label,
-          sslExpireDate: sslDate ?? undefined,
+          sslExpireDate: undefined, // let checkUrl handle this
           ownerId,
         },
       });
-      return url;
+  
+      // Step 2: Immediately check URL status + SSL
+      const checkResult = await this.checkUrl(dto.url); // ⚠️ This updates DB internally
+  
+      // Step 3: Return combined result
+      return {
+        ...created,
+        status: checkResult.status,
+        statusCode: checkResult.statusCode,
+        sslExpireDate: checkResult.sslExpireDate,
+        isSslExpireSoon: checkResult.isSslExpireSoon,
+        lastCheckedAt: checkResult.lastCheck,
+      };
     } catch (error) {
-      // ตรวจสอบ Prisma unique constraint error (เช่น username หรือ email ซ้ำ)
       if (
         error instanceof PrismaClientKnownRequestError &&
         error.code === 'P2002'
@@ -119,7 +136,7 @@ export class MonitorService {
         const field = error.meta?.target?.[0] ?? 'Field';
         throw new BadRequestException(`${field} already exists`);
       }
-
+  
       console.error('❌ Unexpected error during URL creation:', error);
       throw new InternalServerErrorException('URL creation failed');
     }
@@ -151,13 +168,15 @@ export class MonitorService {
   }
 
   async updateUrl(dto: UpdateUrlDto, id: number) {
+
+    const sslDate = dto.sslExpireDate ? new Date(dto.sslExpireDate).toISOString() : undefined;
     const url = await this.prisma.url.update({
       where: {
         id: Number(id),
       },
       data: {
         label: dto.label,
-        sslExpireDate: dto.sslExpireDate ?? undefined,
+        sslExpireDate: sslDate,
         status: dto.status,
       },
     });
