@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { MonitorModule } from './monitor/monitor.module';
 import { ReportModule } from './report/report.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 @Module({
   imports: [
     
@@ -19,7 +20,7 @@ import { ReportModule } from './report/report.module';
       }
     ),
     
-    PrismaModule, UserModule, AuthModule, MonitorModule, ReportModule],
+    PrismaModule, UserModule, AuthModule, MonitorModule, ReportModule, SchedulerModule],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
