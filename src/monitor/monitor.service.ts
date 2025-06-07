@@ -161,6 +161,19 @@ export class MonitorService {
     return urls;
   }
 
+  async getHomepageUrl() {
+    
+    const urls = await this.prisma.url.findMany({
+      select: {
+        status: true,
+        url: true,
+        sslExpireDate: true,
+      },
+    });
+    return urls;
+     
+  }
+
   async getUrl(url: string) {
     const result = await this.prisma.url.findUnique({
       where: {
