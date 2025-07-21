@@ -8,14 +8,19 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.enableCors({
-    origin: 'http://localhost:3000', // หรือ URL ของ frontend
+    origin: [
+      'http://localhost:3000',                  // local dev
+      'https://watchtower.weee-ed.org',         // production domain
+      'https://watchtower.weee-ed.org/api-docs', // production domain
+      // local production
+      'http://watchtower.weee-ed.org',         // production domain
+      'http://watchtower.weee-ed.org/api-docs', // production domain
+    ],
     credentials: true, // 👈 สำคัญมาก
   });
 
   // ✅ Use cookie parser
   app.use(cookieParser());
-  
-
 
   const config = new DocumentBuilder()
     .setTitle('Watchtower API')
@@ -25,7 +30,9 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document); // เปิดที่ http://localhost:3000/api-docs
+  SwaggerModule.setup('api-docs', app, document, {
+    customSiteTitle: 'Watchtower API Docs',
+  });
 
   await app.listen(process.env.PORT ?? 5000);
 }

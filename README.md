@@ -23,14 +23,22 @@ npm install
 ### 3. Set up environment variables
 #### Create a .env file:
 ```bash
-DATABASE_URL="postgresql://<username>:<password>@<host>/<db>?sslmode=require"
-PORT=5000
+DATABASE_URL="postgresql://jhon_doe:password@localhost:5432/watchtower"
+JWT_SECRET="secret"
+
+# Email Notification
+EMAIL_PASSWORD=xxxx xxxx xxxx xxxx
+EMAIL_USER=example@gmail.com
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=465
+EMAIL_SSL=true
+
 ```
 
 ### 4. Run the app
 
 ```bash
-npm run start:dev
+npm run dev
 ```
 
 ## 🧱 Project Structure
