@@ -1,10 +1,27 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 
 @ApiTags('User') // ⭐ Group ใน Swagger
 @Controller('user')
@@ -16,7 +33,7 @@ export class UserController {
   @ApiOperation({ summary: 'Signup new user' })
   @ApiResponse({ status: 201, description: 'User created' })
   signup(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto)
+    return this.userService.createUser(createUserDto);
   }
 
   @Get()
@@ -25,7 +42,7 @@ export class UserController {
   @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ status: 200, description: 'List of users' })
   getAllUser() {
-    return this.userService.findAll()
+    return this.userService.findAll();
   }
 
   @Post('/user-info')
@@ -35,7 +52,7 @@ export class UserController {
   @ApiOperation({ summary: 'Get user info from token' })
   @ApiResponse({ status: 200, description: 'User info' })
   userInfo(@Request() req: any) {
-    return this.userService.findByUsername({username : req.user.username})
+    return this.userService.findByUsername({ username: req.user.username });
   }
 
   @Get('/find-user/:username')
@@ -45,7 +62,7 @@ export class UserController {
   @ApiOperation({ summary: 'Find user by username' })
   @ApiResponse({ status: 200, description: 'User info' })
   findUser(@Param('username') username: string) {
-    return this.userService.findByUsername({username : username})
+    return this.userService.findByUsername({ username: username });
   }
 
   @Patch('/update-user/:id')
@@ -55,7 +72,7 @@ export class UserController {
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'User updated' })
   updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.updateUser(Number(id), updateUserDto)
+    return this.userService.updateUser(id, updateUserDto);
   }
 
   @Delete('/delete-user/:id')
@@ -65,7 +82,7 @@ export class UserController {
   @ApiOperation({ summary: 'Delete user' })
   @ApiResponse({ status: 200, description: 'User deleted' })
   deleteUser(@Param('id') id: string) {
-    return this.userService.deleteUser(Number(id))
+    return this.userService.deleteUser(id);
   }
 
   @Patch('/update-contract/:id')
@@ -83,10 +100,10 @@ export class UserController {
       },
     },
   })
-  updateContract(@Param('id') id: string, @Body() updateContractDto: {tel: string, line: string}) {
-    return this.userService.updateContract(Number(id), updateContractDto)
+  updateContract(
+    @Param('id') id: string,
+    @Body() updateContractDto: { tel: string; line: string },
+  ) {
+    return this.userService.updateContract(id, updateContractDto);
   }
 }
-
-
-

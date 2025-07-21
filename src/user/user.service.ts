@@ -4,11 +4,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { AccountStatus, CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { emit } from 'process';
 
 const hashPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt();
@@ -28,6 +29,18 @@ export class UserService {
           // TODO: Implement status check after register with mail
           // status: 'active'
         },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          password: true,
+          status: true,
+          role: true,
+          tel: true,
+          line: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
 
       if (!user) {
@@ -41,10 +54,13 @@ export class UserService {
           id: user.id,
           username: user.username,
           status: user.status,
-          level: user.level,
+          password: user.password,
+          role: user.role.name,
           tel: user.tel,
           line: user.line,
-          password: user.password,
+          email: user.email,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         },
       };
     } catch (error) {
@@ -56,6 +72,13 @@ export class UserService {
     try {
       const hashedPassword = await hashPassword(createUserDto.password);
 
+      const userRole = await this.prisma.role.findUnique({
+        where: { name:  createUserDto.role},
+      });
+      if (!userRole) {
+        throw new Error('User role not found');
+      }
+
       const user = await this.prisma.user.create({
         data: {
           username: createUserDto.username,
@@ -63,10 +86,18 @@ export class UserService {
           tel: createUserDto.tel,
           line: createUserDto.line,
           password: hashedPassword,
+          roleId: userRole.id, // ระบบกำหนด
+          status: AccountStatus.ACTIVE,
+          activated: true,
         },
         select: {
           id: true,
           username: true,
+          email: true,
+          tel: true,
+          line: true,
+          password: true,
+          role: true,
         },
       });
       return {
@@ -75,6 +106,7 @@ export class UserService {
         data: {
           id: user.id,
           username: user.username,
+          role: user.role.name,
         },
       };
     } catch (error) {
@@ -101,7 +133,7 @@ export class UserService {
         tel: true,
         line: true,
         status: true,
-        level: true,
+        roleId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -119,7 +151,7 @@ export class UserService {
           username: true,
           email: true,
           status: true,
-          level: true,
+          role: true,
           tel: true,
           line: true,
           createdAt: true,
@@ -139,7 +171,7 @@ export class UserService {
           username: user.username,
           email: user.email,
           status: user.status,
-          level: user.level,
+          role: user.role.name,
           tel: user.tel,
           line: user.line,
           createdAt: user.createdAt,
@@ -151,21 +183,28 @@ export class UserService {
     }
   }
 
-  async updateUser(id: number, updateUserDto: UpdateUserDto) {
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
     try {
+      const roleId = await this.prisma.role.findUnique({
+        where: { name: updateUserDto.role },
+      });
+
+      if (!roleId) {
+        throw new NotFoundException('Role not found');
+      }
       const updateData: any = {
         tel: updateUserDto.tel,
         line: updateUserDto.line,
-        level: updateUserDto.level,
+        roleId: roleId.id,
         status: updateUserDto.status,
       };
-  
+
       if (updateUserDto.password && updateUserDto.password.trim() !== '') {
         updateData.password = await hashPassword(updateUserDto.password);
       }
-  
+
       const user = await this.prisma.user.update({
-        where: { id: Number(id) },
+        where: { id: id },
         data: updateData,
         select: {
           id: true,
@@ -175,26 +214,25 @@ export class UserService {
           line: true,
         },
       });
-  
+
       return {
         message: 'User updated successfully',
         httpStatus: 200,
         data: user,
       };
-  
     } catch (error) {
       throw new NotFoundException('User not found or update failed');
     }
   }
 
-  async deleteUser(id: number) {
+  async deleteUser(id: string) {
     try {
       const user = await this.prisma.user.update({
         where: {
-          id: Number(id),
+          id: id,
         },
         data: {
-          status: 'inactive',
+          status: AccountStatus.INACTIVE,
         },
         select: {
           id: true,
@@ -219,10 +257,13 @@ export class UserService {
     }
   }
 
-  async updateContract(id: number, updateContractDto: {tel: string, line: string}) {
+  async updateContract(
+    id: string,
+    updateContractDto: { tel: string; line: string },
+  ) {
     try {
       const user = await this.prisma.user.update({
-        where: { id: Number(id) },
+        where: { id: id },
         data: {
           tel: updateContractDto.tel,
           line: updateContractDto.line,
@@ -249,4 +290,35 @@ export class UserService {
     }
   }
 
+  async reviveUser(id: string) {
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: AccountStatus.ACTIVE,
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      return {
+        message: 'User revived successfully',
+        httpStatus: 200,
+        data: {
+          id: user.id,
+          username: user.username,
+        },
+      };
+    } catch (error) {
+      throw new NotFoundException('User not found');
+    }
+  }
 }

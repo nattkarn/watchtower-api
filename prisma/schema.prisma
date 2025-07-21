@@ -14,32 +14,72 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
+  id        String        @id @default(uuid())
+  username  String        @unique
+  email     String        @unique
   tel       String?
-  line      String?   
+  line      String?
   password  String
-  level     String   @default("user") // user, admin
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  status    String   @default("inactive") // active, inactive
-  urls      Url[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  status    AccountStatus @default(INACTIVE) // INACTIVE, ACTIVE, PENDING, BANNED
+  activated Boolean       @default(false)
+  urls      Url[] 
+  roleId    String
+  role      Role          @relation(fields: [roleId], references: [id])
+
+  verificationToken VerificationToken?
+}
+
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique // e.g., "ADMIN", "USER"
+  users       User[]
+  permissions Permission[] @relation("RolePermissions")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  isSystem    Boolean      @default(false)
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g., "user:create", "post:edit", "auth:resend-otp"
+  description String?
+  roles       Role[]   @relation("RolePermissions")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VerificationToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+
+  @@index([token])
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  BANNED
 }
 
 model Url {
-  id              Int      @id @default(autoincrement())
-  url             String   @unique
+  id              Int       @id @default(autoincrement())
+  url             String    @unique
   label           String
   sslExpireDate   DateTime?
-  isSslExpireSoon Boolean  @default(false)
-  status          String   @default("inactive") // active, inactive, maintenance
+  isSslExpireSoon Boolean   @default(false)
+  status          String    @default("inactive") // active, inactive, maintenance
   lastCheckedAt   DateTime?
   lastStatusCode  Int? // 200, 404, 500, 502, 503, 504
-  ownerId         Int
-  owner           User     @relation(fields: [ownerId], references: [id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  ownerId         String
+  owner           User      @relation(fields: [ownerId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   alertLogs AlertLog[]
 
@@ -47,11 +87,10 @@ model Url {
 }
 
 model AlertLog {
-  id         Int      @id @default(autoincrement())
-  urlId      Int
-  url        Url      @relation(fields: [urlId], references: [id])
-  type       String   // 'status-change' | 'ssl-expire'
-  message    String
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  urlId     Int
+  url       Url      @relation(fields: [urlId], references: [id])
+  type      String // 'status-change' | 'ssl-expire'
+  message   String
+  createdAt DateTime @default(now())
 }
-
