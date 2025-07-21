@@ -102,7 +102,7 @@ export class MonitorService {
     console.log('✅ SSL Expiry:', sslDateString ?? 'ไม่พบข้อมูล SSL');
   }
 
-  async createUrl(dto: CreateUrlDto, ownerId: number) {
+  async createUrl(dto: CreateUrlDto, ownerId: string) {
     // console.log('dto',dto)
     // console.log('ownerId',ownerId)
 

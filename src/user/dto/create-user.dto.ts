@@ -1,8 +1,17 @@
-import { IsEmail, IsIn, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsIn, IsString, MinLength } from 'class-validator';
 import { UniqueUsername } from '../dto/unique-username.validator';
 import { UniqueEmail } from '../dto/unique-email.validator';
 import { ApiProperty } from '@nestjs/swagger';
 
+export enum Role {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+}
+
+export enum AccountStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
 export class CreateUserDto {
   @ApiProperty({
     example: 'john_doe',
@@ -61,9 +70,8 @@ export class CreateUserDto {
     description: 'User level',
     enum: ['user', 'admin'],
   })
-  @IsString()
-  @IsIn(['user', 'admin'], {
-    message: 'Level must be either "user" or "admin"',
+  @IsEnum(Role, {
+    message: 'Level must be either "ADMIN" or "USER"',
   })
-  level: string;
+  role: Role;
 }

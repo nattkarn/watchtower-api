@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AccountStatus, Role } from 'src/user/dto/create-user.dto';
 import { EmailService } from 'src/utils/email.util';
 
 @Injectable()
@@ -34,10 +35,19 @@ export class AlertService {
     }
 
     // Load admin emails
+
+    const roleAdmin = await this.prisma.role.findUnique({
+      where: {
+        id: Role.ADMIN,
+      },
+      select: { id: true },
+      
+    });
+    
     const adminEmails = await this.prisma.user.findMany({
       where: {
-        level: 'admin',
-        status: 'active',
+        roleId: roleAdmin?.id,
+        status: AccountStatus.ACTIVE,
       },
       select: { email: true },
     });
