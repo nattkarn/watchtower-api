@@ -134,6 +134,7 @@ export class UserService {
         line: true,
         status: true,
         roleId: true,
+        role: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -221,6 +222,7 @@ export class UserService {
         data: user,
       };
     } catch (error) {
+      console.log(error);
       throw new NotFoundException('User not found or update failed');
     }
   }

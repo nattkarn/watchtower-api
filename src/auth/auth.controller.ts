@@ -99,4 +99,28 @@ export class AuthController {
     const verifyToken = await this.authService.verifyToken(req.body.token);
     return verifyToken;
   }
+
+  @Post('/refresh-token')
+  @HttpCode(200)
+  @SkipThrottle()
+  async refreshToken(@Request() req: any, @Res({ passthrough: true }) res: Response) {
+    
+    const refreshToken = req.cookies['watchtower_user_refresh_token'];
+    const result = await this.authService.refresh(refreshToken);
+
+    res.cookie('watchtower_user_token', '', {
+      httpOnly: true,
+      maxAge: 0,
+      path: '/',
+    });
+    // เซต access token ใหม่
+    res.cookie('watchtower_user_token', result.token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000, // 15 นาที
+    });
+    console.log('set cookie');
+    return result;
+  }
 }

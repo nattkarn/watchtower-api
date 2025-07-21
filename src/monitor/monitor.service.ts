@@ -191,6 +191,7 @@ export class MonitorService {
         id: Number(id),
       },
       data: {
+        url: dto.url,
         label: dto.label,
         sslExpireDate: sslDate,
         status: dto.status,

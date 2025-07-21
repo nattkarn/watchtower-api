@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'; // 👈 1. Import decorators
-import { IsString, IsDateString, IsOptional, IsIn } from 'class-validator';
+import { IsString, IsDateString, IsOptional, IsIn, IsUrl } from 'class-validator';
 
 export class UpdateUrlDto {
   @ApiProperty({
@@ -8,6 +8,14 @@ export class UpdateUrlDto {
   })
   @IsString()
   label: string;
+
+  @ApiPropertyOptional({
+    description: 'The URL to monitor',
+    example: 'https://google.com',
+  })
+  @IsString()
+  @IsUrl()
+  url?: string;
 
   @ApiPropertyOptional({
     description: 'The SSL certificate expiration date (in ISO 8601 format)',

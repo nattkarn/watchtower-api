@@ -43,7 +43,7 @@ export class MonitorController {
   @ApiResponse({ status: 200, description: 'URL created successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async createUrl(@Body() body: CreateUrlDto, @Request() req: any) {
-    return this.monitorService.createUrl(body, req.user.userid);
+    return this.monitorService.createUrl(body, req.user.sub);
   }
 
   @Patch('update-url/:id')
@@ -57,6 +57,8 @@ export class MonitorController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 404, description: 'URL not found.' })
   async updateUrl(@Body() body: UpdateUrlDto, @Param('id') id: number) {
+    console.log('body', body);
+    console.log('id', id);
     return this.monitorService.updateUrl(body, id);
   }
 
@@ -68,7 +70,6 @@ export class MonitorController {
   @ApiResponse({ status: 200, description: 'Returns an array of monitored URLs.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async getAllUrl(@Request() req: any) {
-    console.log('user', req.user);
     return this.monitorService.getAllUrl();
   }
 

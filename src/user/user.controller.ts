@@ -62,6 +62,7 @@ export class UserController {
   @ApiOperation({ summary: 'Find user by username' })
   @ApiResponse({ status: 200, description: 'User info' })
   findUser(@Param('username') username: string) {
+    console.log(username);
     return this.userService.findByUsername({ username: username });
   }
 
@@ -72,6 +73,7 @@ export class UserController {
   @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({ status: 200, description: 'User updated' })
   updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    console.log('id', id);
     return this.userService.updateUser(id, updateUserDto);
   }
 
