@@ -23,7 +23,7 @@ export class AlertService {
     // console.log('processAlertForUrl newStatus', newStatus)
     // console.log('processAlertForUrl isSslExpireSoon', isSslExpireSoon)
     // console.log('processAlertForUrl sslExpireDate', sslExpireDate)
-    
+
     const url = await this.prisma.url.findUnique({
       where: { id: urlId },
       include: { owner: true },
@@ -41,9 +41,8 @@ export class AlertService {
         id: Role.ADMIN,
       },
       select: { id: true },
-      
     });
-    
+
     const adminEmails = await this.prisma.user.findMany({
       where: {
         roleId: roleAdmin?.id,
@@ -52,16 +51,16 @@ export class AlertService {
       select: { email: true },
     });
 
-    console.log('adminEmails', adminEmails)
+    console.log('adminEmails', adminEmails);
     const emailList = adminEmails.map((user) => user.email);
 
     // 1️⃣ Check for status change (insert log every time if status changed)
     // console.log('url.status', url.status)
     // console.log('newStatus', newStatus)
     if (previousStatus !== newStatus) {
-      console.log('call alert')
-      const subject = `[ALERT] URL Status Changed: ${url.url}`;
-      const message = `URL: ${url.url}\nStatus changed from ${url.status?.toUpperCase()} → ${newStatus?.toUpperCase()}\nLast checked: ${new Date().toISOString()}`;
+      console.log('call alert');
+      const subject = `[ALERT] URL นี้อาจเกิดข้อผิดพลาดกรุณาตรวจสอบโดยด่วน: ${url.url}`;
+      const message = `URL นี้อาจเกิดข้อผิดพลาดกรุณาตรวจสอบโดยด่วน URL: ${url.url}\nStatus changed from ${url.status?.toUpperCase()} → ${newStatus?.toUpperCase()}\nLast checked: ${new Date().toISOString()}`;
 
       await this.emailService.sendEmailNotify(subject, message, emailList);
 
@@ -117,5 +116,4 @@ export class AlertService {
     await this.emailService.testEmail();
     return { message: 'Test email sent.' };
   }
-
 }

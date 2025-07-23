@@ -10,11 +10,11 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',                  // local dev
-      'https://watchtower.weee-ed.org',         // production domain
-      'https://watchtower.weee-ed.org/api-docs', // production domain
+      'https://watchtower.wee-ed.org',         // production domain
+      'https://watchtower.wee-ed.org/api-docs', // production domain
       // local production
-      'http://watchtower.weee-ed.org',         // production domain
-      'http://watchtower.weee-ed.org/api-docs', // production domain
+      'http://watchtower.wee-ed.org',         // production domain
+      'http://watchtower.wee-ed.org/api-docs', // production domain
     ],
     credentials: true, // 👈 สำคัญมาก
   });
