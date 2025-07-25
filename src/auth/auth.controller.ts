@@ -91,6 +91,7 @@ export class AuthController {
   }
 
   @Post('/verify-token')
+  @SkipThrottle()
   @HttpCode(200)
   @ApiOperation({ summary: 'Verify Token', description: 'Verify JWT token validity' })
   @ApiResponse({ status: 200, description: 'Token verified' })
